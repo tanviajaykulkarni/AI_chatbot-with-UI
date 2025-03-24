@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .chat-container {
+            width: 50%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: none;
+            overflow-y: auto;
+            background-color: #eef2f7;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .bold-blue {
+            font-weight: bold;
+            color: #007bff; /* Blue for "You" */
+        }
+        .bold-green {
+            font-weight: bold;
+            color: #28a745; /* Green for "Chatbot" */
+        }
+    </style>
+    <script>
+        function sendMessage() {
+            let userInput = document.getElementById("user_input").value.trim();
+            let chatbox = document.getElementById("chatbox");
+
+            if (userInput === "") return;
+
+            // Append user message with styling
+            chatbox.innerHTML += `<p><span class="bold-blue">You:</span> ${userInput}</p>`;
+            document.getElementById("user_input").value = "";
+
+            // Send user input to Flask server
+            fetch("/chat", {
+                method: "POST",
+                body: JSON.stringify({ user_query: userInput }),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Append chatbot response with styling
+                chatbox.innerHTML += `<p><span class="bold-green">Chatbot:</span> ${data.response}</p>`;
+                chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to latest message
+            })
+            .catch(error => {
+                chatbox.innerHTML += `<p><span class="bold-green">Chatbot:</span> Error: Could not get response</p>`;
+            });
+        }
+
+        // Enter key support
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("user_input").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <div class="chat-container">
+        <h2>Chat with AI</h2>
+        <div id="chatbox" style="text-align: left; padding: 10px; background-color: #eef2f7; height: 300px; overflow-y: auto; border-radius: 5px;"></div>
+        <div class="input-container">
+            <input type="text" id="user_input" placeholder="Type your query here..." autofocus>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+</body>
+</html>
